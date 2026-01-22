@@ -9,27 +9,36 @@ export const LOGO_STYLES = [
   { value: LogoStyle.TECH, label: 'Tech' },
   { value: LogoStyle.AVANT_GARDE, label: 'Avant-Garde' },
   { value: LogoStyle.CYBERPUNK, label: 'Cyberpunk' },
+  { value: LogoStyle.BRUTALIST, label: 'Brutalist' },
 ];
 
 export const MATERIALS = [
   { value: 'liquid_chrome', label: 'Liquid Chrome' },
-  { value: 'matte_ink', label: 'Matte Ink (Sérigraphie)' },
+  { value: 'matte_ink', label: 'Matte Ink' },
   { value: 'pulsing_neon', label: 'Pulsing Neon' },
   { value: 'frosted_glass', label: 'Frosted Glass' },
   { value: 'gold_foil', label: 'Gold Foil' },
+  { value: 'iridescent_pearl', label: 'Iridescent Pearl' },
 ];
 
 export const DIMENSIONS = [
-  { value: '1:1', label: 'Square (1:1)' },
-  { value: '4:3', label: 'Banner (4:3)' },
-  { value: '16:9', label: 'Cinematic (16:9)' },
+  { value: '1:1', label: 'Square' },
+  { value: '4:3', label: 'Standard' },
+  { value: '16:9', label: 'Cinematic' },
+];
+
+export const QUALITY_PRESETS = [
+  { value: '1K', label: 'Draft (Fast)' },
+  { value: '2K', label: 'Studio (Pro)' },
+  { value: '4K', label: 'Masterpiece (Ultra)' },
 ];
 
 export const FONTS = [
-  { value: 'font-display', label: 'Bold Display' },
-  { value: 'font-sans', label: 'Modern Sans' },
-  { value: 'font-serif', label: 'Classic Serif' },
-  { value: 'font-mono', label: 'Geometric Mono' },
+  { value: 'font-display', label: 'Space Grotesk (Bold)' },
+  { value: 'font-sans', label: 'Inter (Clean)' },
+  { value: 'font-serif', label: 'Playfair (Elegant)' },
+  { value: 'font-mono', label: 'JetBrains (Tech)' },
+  { value: 'font-wide', label: 'Monument (Wide)' },
 ];
 
 export const COLOR_PRESETS = [

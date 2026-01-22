@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import GeneratorForm from './components/GeneratorForm';
 import LogoCard from './components/LogoCard';
 import CodeModal from './components/CodeModal';
@@ -11,15 +11,48 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedLogoForCode, setSelectedLogoForCode] = useState<GeneratedLogo | null>(null);
+  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkApiKey = async () => {
+      if (typeof window.aistudio?.hasSelectedApiKey === 'function') {
+        const hasKey = await window.aistudio.hasSelectedApiKey();
+        setHasApiKey(hasKey);
+      } else {
+        setHasApiKey(true);
+      }
+    };
+    checkApiKey();
+  }, []);
+
+  const handleOpenKeySelector = async () => {
+    if (typeof window.aistudio?.openSelectKey === 'function') {
+      await window.aistudio.openSelectKey();
+      setHasApiKey(true);
+    }
+  };
 
   const handleGenerate = async (config: LogoConfig) => {
     setIsLoading(true);
     setError(null);
+    console.log("Starting generation with config:", config);
+    
     try {
       const proposals = await generateLogoProposals(config, 4);
       setLogos(prev => [...proposals, ...prev]);
-    } catch (err) {
-      setError('Neural feedback loop interrupted. Retrying sync...');
+    } catch (err: any) {
+      console.error("Generation error details:", err);
+      
+      if (err.message?.includes("Requested entity was not found")) {
+        setHasApiKey(false);
+        setError('API Key Invalid: Please select a paid key again.');
+      } else if (err.message?.includes("parsing failed")) {
+        setError('Structure Error: The AI returned an invalid format. Please try again.');
+      } else if (err.message?.includes("Safety")) {
+        setError('Safety Block: Your prompt was flagged. Please try more neutral terms.');
+      } else {
+        setError(`System Error: ${err.message || 'Unknown neural disruption'}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -35,6 +68,37 @@ const App: React.FC = () => {
   const handleInspect = (logo: GeneratedLogo) => {
     setSelectedLogoForCode(logo);
   };
+
+  if (hasApiKey === false) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-12">
+        <div className="glass-pro p-16 rounded-[4rem] text-center max-w-xl space-y-10 border border-white/5 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500/30"></div>
+          <h2 className="text-5xl font-black text-white uppercase tracking-tighter leading-none">Authentication <br/><span className="text-indigo-500">Required</span></h2>
+          <p className="text-slate-400 text-lg leading-relaxed">
+            LogoNova Neural OS requires a valid API key from a paid Google Cloud project.
+          </p>
+          <div className="space-y-6">
+            <a 
+              href="https://ai.google.dev/gemini-api/docs/billing" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] hover:text-white transition-colors flex items-center justify-center gap-2"
+            >
+              Learn about billing
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" strokeWidth="2.5"/></svg>
+            </a>
+            <button 
+              onClick={handleOpenKeySelector}
+              className="w-full bg-white text-black py-7 rounded-[2.5rem] font-black text-xl hover:bg-indigo-500 hover:text-white transition-all shadow-2xl uppercase tracking-widest"
+            >
+              Select Paid API Key
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-32">
@@ -66,23 +130,31 @@ const App: React.FC = () => {
           <div className="lg:col-span-5 space-y-16">
             <div className="space-y-8">
               <div className="inline-block px-3 py-1 rounded-md bg-white/5 border border-white/10 text-[9px] font-black text-indigo-400 uppercase tracking-[0.3em]">
-                Synthesis Engine v4.0 Alpha
+                Synthesis Engine v4.1 Alpha
               </div>
               <h2 className="text-8xl font-black leading-[0.85] font-display tracking-tighter text-white uppercase">
                 Zero <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-600">Friction.</span>
               </h2>
               <p className="text-xl text-slate-500 leading-relaxed font-light max-w-sm">
-                Generated as isolated neural assets on pure black. Instant <span className="text-white font-medium italic">Alpha Blending</span> for any UI. No background removal needed.
+                Generated as isolated neural assets on pure black. Instant <span className="text-white font-medium italic">Alpha Blending</span> for any UI.
               </p>
             </div>
 
             <GeneratorForm onGenerate={handleGenerate} isLoading={isLoading} />
             
             {error && (
-              <div className="p-8 glass-pro border-red-500/30 text-red-400 rounded-[2rem] text-xs font-black uppercase tracking-widest flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">!</div>
-                {error}
+              <div className="p-8 glass-pro border-red-500/30 text-red-400 rounded-[2rem] text-xs font-black uppercase tracking-widest flex flex-col gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">!</div>
+                  <span>{error}</span>
+                </div>
+                <button 
+                  onClick={() => setError(null)}
+                  className="text-[9px] text-slate-500 hover:text-white underline text-left px-14"
+                >
+                  Clear status
+                </button>
               </div>
             )}
           </div>

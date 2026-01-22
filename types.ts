@@ -11,11 +11,17 @@ export interface GeneratedLogo {
     tone: string;
     target: string;
     archetype: string;
+    socialBio: string;
+    mission: string;
+    elevatorPitch: string;
+    values: string[];
   };
+  moodboard: string[];
   createdAt: number;
   fontFamily: string;
   material: string;
   aspectRatio: "1:1" | "4:3" | "16:9";
+  quality: "1K" | "2K" | "4K";
 }
 
 export enum LogoStyle {
@@ -25,7 +31,8 @@ export enum LogoStyle {
   LUXURY = 'luxury',
   TECH = 'tech',
   AVANT_GARDE = 'avant-garde',
-  CYBERPUNK = 'cyberpunk'
+  CYBERPUNK = 'cyberpunk',
+  BRUTALIST = 'brutalist'
 }
 
 export interface LogoConfig {
@@ -36,4 +43,5 @@ export interface LogoConfig {
   fontFamily: string;
   material: string;
   aspectRatio: "1:1" | "4:3" | "16:9";
+  quality: "1K" | "2K" | "4K";
 }
