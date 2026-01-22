@@ -1,14 +1,15 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { GeneratedLogo } from '../types';
 
 interface LogoCardProps {
   logo: GeneratedLogo;
   onDownload: (logo: GeneratedLogo) => void;
+  onInspect: (logo: GeneratedLogo) => void;
   index: number;
 }
 
-const LogoCard: React.FC<LogoCardProps> = ({ logo, onDownload, index }) => {
+const LogoCard: React.FC<LogoCardProps> = ({ logo, onDownload, onInspect, index }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showMockup, setShowMockup] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -31,7 +32,6 @@ const LogoCard: React.FC<LogoCardProps> = ({ logo, onDownload, index }) => {
     setTilt({ x: 0, y: 0 });
   };
 
-  // Staggered letter animation helper
   const renderAnimatedName = (name: string) => {
     return name.split('').map((char, i) => (
       <span 
@@ -48,7 +48,7 @@ const LogoCard: React.FC<LogoCardProps> = ({ logo, onDownload, index }) => {
     <div className="perspective-2000 w-full group">
       <div 
         ref={cardRef}
-        className={`glass-pro rounded-[3rem] p-10 relative transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-none overflow-hidden ${showMockup ? 'h-[450px]' : 'h-[360px]'}`}
+        className={`glass-pro rounded-[3rem] p-10 relative transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-crosshair overflow-hidden ${showMockup ? 'h-[450px]' : 'h-[360px]'}`}
         style={{ 
           transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
         }}
@@ -59,7 +59,6 @@ const LogoCard: React.FC<LogoCardProps> = ({ logo, onDownload, index }) => {
         {/* Mockup Backgrounds */}
         <div className={`absolute inset-0 transition-opacity duration-700 ${showMockup ? 'opacity-100' : 'opacity-0'}`}>
           <div className="absolute inset-0 bg-[#111] opacity-90"></div>
-          {/* Fabric/Texture Pattern */}
           <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 0)', backgroundSize: '20px 20px' }}></div>
         </div>
 
@@ -83,7 +82,6 @@ const LogoCard: React.FC<LogoCardProps> = ({ logo, onDownload, index }) => {
                   className={`w-full h-full object-contain mix-blend-multiply transition-all duration-500 ${showMockup ? 'filter invert contrast-125 brightness-150 scale-125' : ''}`}
                 />
               </div>
-              {/* Sérigraphie grain overlay (only visible on the image area) */}
               <div className="absolute inset-0 pointer-events-none opacity-40 print-texture mix-blend-overlay"></div>
             </div>
 
@@ -113,6 +111,13 @@ const LogoCard: React.FC<LogoCardProps> = ({ logo, onDownload, index }) => {
                   {showMockup ? 'Studio View' : 'Project on Fabric'}
                 </button>
                 <button 
+                  onClick={() => onInspect(logo)}
+                  className="bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all border border-white/5 flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                  Get Code
+                </button>
+                <button 
                   onClick={() => onDownload(logo)}
                   className="bg-white text-black px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-400 hover:text-white transition-all shadow-xl"
                 >
@@ -122,20 +127,6 @@ const LogoCard: React.FC<LogoCardProps> = ({ logo, onDownload, index }) => {
             </div>
           </div>
         </div>
-
-        {/* Visual Custom Cursor (on card) */}
-        {isHovered && !showMockup && (
-          <div 
-            className="fixed pointer-events-none z-50 w-8 h-8 rounded-full border border-indigo-500 flex items-center justify-center mix-blend-difference"
-            style={{ 
-              left: `${tilt.y * -5 + 50}%`, 
-              top: `${tilt.x * 5 + 50}%`,
-              transform: 'translate(-50%, -50%)'
-            }}
-          >
-            <div className="w-1 h-1 bg-indigo-500 rounded-full"></div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import GeneratorForm from './components/GeneratorForm';
 import LogoCard from './components/LogoCard';
+import CodeModal from './components/CodeModal';
 import { LogoConfig, GeneratedLogo } from './types';
 import { generateLogoProposals } from './services/geminiService';
 
@@ -9,6 +10,7 @@ const App: React.FC = () => {
   const [logos, setLogos] = useState<GeneratedLogo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedLogoForCode, setSelectedLogoForCode] = useState<GeneratedLogo | null>(null);
 
   const handleGenerate = async (config: LogoConfig) => {
     setIsLoading(true);
@@ -36,6 +38,10 @@ const App: React.FC = () => {
     link.href = logo.imageUrl;
     link.download = `nova-pro-${logo.businessName.toLowerCase()}-${logo.id}.png`;
     link.click();
+  };
+
+  const handleInspect = (logo: GeneratedLogo) => {
+    setSelectedLogoForCode(logo);
   };
 
   return (
@@ -147,6 +153,7 @@ const App: React.FC = () => {
                       key={logo.id} 
                       logo={logo} 
                       onDownload={handleDownload}
+                      onInspect={handleInspect}
                       index={index}
                     />
                   ))}
@@ -156,6 +163,11 @@ const App: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Code Modal */}
+      {selectedLogoForCode && (
+        <CodeModal logo={selectedLogoForCode} onClose={() => setSelectedLogoForCode(null)} />
+      )}
       
       {/* Cinematic Studio Footer */}
       <footer className="mt-40 pt-20 pb-10 border-t border-white/5 bg-black/50">
