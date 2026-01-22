@@ -2,10 +2,20 @@
 export interface GeneratedLogo {
   id: string;
   imageUrl: string;
+  motionUrl?: string;
   businessName: string;
+  slogan: string;
   description: string;
+  palette: string[];
+  brandStrategy: {
+    tone: string;
+    target: string;
+    archetype: string;
+  };
   createdAt: number;
   fontFamily: string;
+  material: string;
+  aspectRatio: "1:1" | "4:3" | "16:9";
 }
 
 export enum LogoStyle {
@@ -13,7 +23,9 @@ export enum LogoStyle {
   MODERN = 'modern',
   PLAYFUL = 'playful',
   LUXURY = 'luxury',
-  TECH = 'tech'
+  TECH = 'tech',
+  AVANT_GARDE = 'avant-garde',
+  CYBERPUNK = 'cyberpunk'
 }
 
 export interface LogoConfig {
@@ -22,4 +34,6 @@ export interface LogoConfig {
   style: LogoStyle;
   primaryColor: string;
   fontFamily: string;
+  material: string;
+  aspectRatio: "1:1" | "4:3" | "16:9";
 }

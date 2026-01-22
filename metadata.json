@@ -1,5 +1,8 @@
 {
-  "name": "LogoNova - Interactive Logo Studio",
-  "description": "A hyper-innovative logo generator that creates unique brand marks and features an interactive hover-to-reveal business name effect.",
-  "requestFramePermissions": []
+  "name": "LogoNova - Neural Brand OS",
+  "description": "Hyper-innovative logo generator with transparent blending, 3D motion identity, and automated brand strategy.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
 }
