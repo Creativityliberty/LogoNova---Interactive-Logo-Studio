@@ -10,90 +10,90 @@ interface CodeModalProps {
 const CodeModal: React.FC<CodeModalProps> = ({ logo, onClose }) => {
   const [copied, setCopied] = useState(false);
 
-  const reactCode = `
-import React, { useState, useRef } from 'react';
-
-// Animation Component for ${logo.businessName}
-const BrandLogoInteraction = () => {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [hovered, setHovered] = useState(false);
-  const cardRef = useRef(null);
-
-  const handleMouseMove = (e) => {
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    setTilt({ x: (y - 0.5) * 20, y: (0.5 - x) * 20 });
+  const brandProfile = {
+    identity: {
+      name: logo.businessName,
+      slogan: logo.slogan,
+      niche: logo.description,
+      archetype: logo.brandStrategy.archetype,
+    },
+    strategy: {
+      positioning: logo.brandStrategy.positioning,
+      values: logo.brandStrategy.values,
+      traits: logo.brandStrategy.personalityTraits,
+    },
+    visual: {
+      palette: logo.palette,
+      font: logo.fontFamily,
+      keywords: logo.brandStrategy.visualKeywords,
+    }
   };
 
-  return (
-    <div 
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { setHovered(false); setTilt({x:0, y:0}); }}
-      className="perspective-1000 w-full max-w-md p-10 rounded-[3rem] bg-slate-900 border border-white/10 transition-transform duration-300 ease-out"
-      style={{ transform: \`rotateX(\${tilt.x}deg) rotateY(\${tilt.y}deg)\` }}
-    >
-      <div className="flex items-center gap-8">
-        <img src="${logo.imageUrl}" className="w-32 h-32 object-contain" alt="Logo" />
-        <h2 className="text-4xl font-bold text-white transition-all duration-500" 
-            style={{ opacity: hovered ? 1 : 0, transform: hovered ? 'translateX(0)' : 'translateX(-20px)' }}>
-          ${logo.businessName}
-        </h2>
-      </div>
-    </div>
-  );
-};
-  `.trim();
+  const jsonBlueprint = JSON.stringify(brandProfile, null, 2);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(reactCode);
+    navigator.clipboard.writeText(jsonBlueprint);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="glass-pro w-full max-w-4xl max-h-[80vh] rounded-[3rem] border border-white/10 flex flex-col overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 bg-black/95 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="glass-pro w-full max-w-5xl max-h-[90vh] rounded-[2rem] md:rounded-[4rem] border border-white/10 flex flex-col overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="p-8 border-b border-white/5 flex justify-between items-center">
+        <div className="p-6 md:p-10 border-b border-white/5 flex justify-between items-center shrink-0">
           <div>
-            <h3 className="text-2xl font-black font-display text-white tracking-tighter">Code Blueprint</h3>
-            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Copy-paste neural interaction</p>
+            <h3 className="text-xl md:text-3xl font-black font-display text-white tracking-tighter uppercase">Brand Blueprint</h3>
+            <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.4em] mt-2">Neural Strategy & Design Data</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition-all">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-full text-white transition-all">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
 
-        {/* Code View */}
-        <div className="flex-1 overflow-y-auto p-8 bg-slate-950/50">
-          <div className="relative group">
-            <div className="absolute top-4 right-4 z-20">
-              <button 
-                onClick={handleCopy}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${copied ? 'bg-emerald-500 text-white' : 'bg-white text-black hover:bg-indigo-500 hover:text-white'}`}
-              >
-                {copied ? 'Copied to Clipboard' : 'Copy Snippet'}
-              </button>
-            </div>
-            <pre className="text-indigo-300 font-mono text-sm leading-relaxed p-6 bg-black/40 rounded-2xl border border-white/5 overflow-x-auto selection:bg-indigo-500/30">
-              <code>{reactCode}</code>
-            </pre>
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-12">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+             <div className="space-y-6">
+                <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Brand Positioning</h4>
+                <div className="space-y-4">
+                   <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                      <p className="text-[10px] text-slate-500 uppercase font-black mb-1">Mission</p>
+                      <p className="text-slate-300 text-sm italic">"{logo.brandStrategy.mission}"</p>
+                   </div>
+                   <div className="p-4 bg-white/5 rounded-xl border border-white/5 grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[8px] text-slate-500 uppercase font-black mb-1">Archetype</p>
+                        <p className="text-white text-xs font-bold">{logo.brandStrategy.archetype}</p>
+                      </div>
+                      <div>
+                        <p className="text-[8px] text-slate-500 uppercase font-black mb-1">Target</p>
+                        <p className="text-white text-xs font-bold">{logo.brandStrategy.target}</p>
+                      </div>
+                   </div>
+                </div>
+             </div>
+
+             <div className="space-y-6">
+                <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Design Blueprint (JSON)</h4>
+                <div className="relative group">
+                  <button 
+                    onClick={handleCopy}
+                    className={`absolute top-4 right-4 z-20 px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all ${copied ? 'bg-emerald-500 text-white' : 'bg-white text-black'}`}
+                  >
+                    {copied ? 'Copied' : 'Copy JSON'}
+                  </button>
+                  <pre className="text-indigo-300 font-mono text-[10px] md:text-xs leading-relaxed p-6 bg-black/60 rounded-2xl border border-white/5 overflow-x-auto h-[300px] no-scrollbar">
+                    <code>{jsonBlueprint}</code>
+                  </pre>
+                </div>
+             </div>
           </div>
 
-          <div className="mt-8 space-y-4">
-            <h4 className="text-white font-bold text-sm uppercase tracking-widest">Required Styles (Tailwind)</h4>
-            <div className="p-4 bg-white/5 rounded-xl text-slate-400 font-mono text-xs">
-              perspective-1000, glass-pro, animate-letter-pop
-            </div>
+          <div className="pt-10 border-t border-white/5 text-center">
+             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">This blueprint is ready for production implementation</p>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-6 bg-slate-900/50 border-t border-white/5 text-center">
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Designed for high-performance React environments</p>
         </div>
       </div>
     </div>

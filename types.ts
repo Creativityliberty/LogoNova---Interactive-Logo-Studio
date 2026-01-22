@@ -15,6 +15,16 @@ export interface GeneratedLogo {
     mission: string;
     elevatorPitch: string;
     values: string[];
+    positioning: {
+      pricePoint: string;
+      vibe: string;
+      competitors: string[];
+    };
+    personalityTraits: {
+      trait: string;
+      value: number; // 0 to 100
+    }[];
+    visualKeywords: string[];
   };
   moodboard: string[];
   createdAt: number;

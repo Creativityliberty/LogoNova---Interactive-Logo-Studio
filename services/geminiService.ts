@@ -2,10 +2,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { LogoConfig, GeneratedLogo } from "../types";
 
-// Helper to clean and parse JSON from AI response
 const extractJSON = (text: string) => {
   try {
-    // Remove markdown code blocks if present
     const cleanText = text.replace(/```json|```/g, "").trim();
     return JSON.parse(cleanText);
   } catch (e) {
@@ -18,8 +16,8 @@ export const generateLogoProposals = async (config: LogoConfig, count: number = 
   const generateSingle = async (index: number): Promise<GeneratedLogo> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
-    // Fallback logic for high-res models
     let imageModel = config.quality === '1K' ? 'gemini-2.5-flash-image' : 'gemini-3-pro-image-preview';
+    const isPro = imageModel === 'gemini-3-pro-image-preview';
 
     const materialPromptMap: Record<string, string> = {
       liquid_chrome: "Liquid mercury silver chrome, extreme reflections, 8k raytracing.",
@@ -30,82 +28,73 @@ export const generateLogoProposals = async (config: LogoConfig, count: number = 
       iridescent_pearl: "Holographic pearl finish, rainbow diffraction, organic luster."
     };
 
-    const imagePrompt = `Iconic brand logo symbol for "${config.businessName}". 
-    Sector: ${config.niche}. Style: ${config.style}.
-    Visual Finish: ${materialPromptMap[config.material] || config.material}.
-    REQUIREMENT: SYMBOL ONLY. NO TEXT. PURE BLACK BACKGROUND (#000000). 
-    CENTRAL COMPOSITION. High-end design.`;
+    const imagePrompt = `Iconic brand logo symbol for "${config.businessName}". Sector: ${config.niche}. Style: ${config.style}. Visual Finish: ${materialPromptMap[config.material] || config.material}. REQUIREMENT: SYMBOL ONLY. NO TEXT. PURE BLACK BACKGROUND (#000000). CENTRAL COMPOSITION.`;
 
-    console.log(`[Step 1/3] Generating Image with ${imageModel}...`);
     let logoB64 = '';
+    const imageConfig: any = { aspectRatio: config.aspectRatio };
+    if (isPro) {
+      imageConfig.imageSize = config.quality === '4K' ? '4K' : (config.quality === '2K' ? '2K' : '1K');
+    }
+
     try {
       const logoResponse = await ai.models.generateContent({
         model: imageModel,
         contents: { parts: [{ text: imagePrompt }] },
-        config: {
-          imageConfig: {
-            aspectRatio: config.aspectRatio,
-            imageSize: config.quality === '4K' ? '4K' : (config.quality === '2K' ? '2K' : '1K')
-          }
-        }
+        config: { imageConfig }
       });
       for (const part of logoResponse.candidates?.[0]?.content?.parts || []) {
         if (part.inlineData) logoB64 = `data:image/png;base64,${part.inlineData.data}`;
       }
     } catch (err) {
-      console.warn("High-res model failed, falling back to Flash Image...", err);
-      imageModel = 'gemini-2.5-flash-image';
-      const logoResponse = await ai.models.generateContent({
-        model: imageModel,
+      console.warn("Generation failed, forcing fallback...", err);
+      const fallbackResponse = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
         contents: { parts: [{ text: imagePrompt }] },
         config: { imageConfig: { aspectRatio: config.aspectRatio } }
       });
-      for (const part of logoResponse.candidates?.[0]?.content?.parts || []) {
+      for (const part of fallbackResponse.candidates?.[0]?.content?.parts || []) {
         if (part.inlineData) logoB64 = `data:image/png;base64,${part.inlineData.data}`;
       }
     }
 
-    if (!logoB64) throw new Error("Image generation returned empty data");
+    if (!logoB64) throw new Error("Neural synthesis returned empty buffer.");
 
-    console.log(`[Step 2/3] Synthesizing Brand DNA...`);
     const strategyResponse = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Design Brand DNA for "${config.businessName}" (${config.niche}). 
-      Return ONLY valid JSON:
+      contents: `Design detailed Brand DNA for "${config.businessName}" (${config.niche}).
+      Return ONLY valid JSON with these EXACT keys:
       {
-        "slogan": "4 words max",
-        "palette": ["4 hex codes"],
-        "tone": "1 word",
-        "target": "2 words",
-        "archetype": "1 word",
-        "socialBio": "Short bio",
-        "mission": "1 sentence",
-        "elevatorPitch": "30 words",
-        "values": ["3 values"],
-        "moodboardPrompts": ["2 photo prompts"]
+        "slogan": "string",
+        "palette": ["string"],
+        "tone": "string",
+        "target": "string",
+        "archetype": "string",
+        "socialBio": "string",
+        "mission": "string",
+        "elevatorPitch": "string",
+        "values": ["string"],
+        "positioning": { "pricePoint": "Budget|Mid|Premium|Luxury", "vibe": "string", "competitors": ["string"] },
+        "personalityTraits": [ { "trait": "Classic vs Modern", "value": 80 }, { "trait": "Playful vs Serious", "value": 20 } ],
+        "visualKeywords": ["string"],
+        "moodboardPrompts": ["string"]
       }`,
-      config: {
-        responseMimeType: "application/json"
-      }
+      config: { responseMimeType: "application/json" }
     });
 
     const strategy = extractJSON(strategyResponse.text || '{}');
 
-    console.log(`[Step 3/3] Fetching Moodboard Textures...`);
-    const moodboardResults = await Promise.all((strategy.moodboardPrompts || []).map(async (prompt: string) => {
+    const moodboardResults = await Promise.all((strategy.moodboardPrompts || []).slice(0, 2).map(async (prompt: string) => {
       try {
         const aiMood = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const res = await aiMood.models.generateContent({
           model: 'gemini-2.5-flash-image',
-          contents: { parts: [{ text: `High-end photography: ${prompt}. Cinematic lighting.` }] },
+          contents: { parts: [{ text: `High-end cinematic photography: ${prompt}` }] },
           config: { imageConfig: { aspectRatio: '16:9' } }
         });
         for (const part of res.candidates?.[0]?.content?.parts || []) {
           if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
         }
-      } catch (e) {
-        console.error("Moodboard part failed:", e);
-      }
+      } catch (e) { return ''; }
       return '';
     }));
 
@@ -113,17 +102,20 @@ export const generateLogoProposals = async (config: LogoConfig, count: number = 
       id: Math.random().toString(36).substring(2, 11),
       imageUrl: logoB64,
       businessName: config.businessName,
-      slogan: strategy.slogan || 'Identity Evolved',
+      slogan: strategy.slogan || 'Future Protocol',
       description: config.niche,
-      palette: strategy.palette || [config.primaryColor, '#ffffff', '#000000', '#333333'],
+      palette: strategy.palette || ['#000000', '#ffffff'],
       brandStrategy: {
         tone: strategy.tone || 'Professional',
-        target: strategy.target || 'Global Market',
-        archetype: strategy.archetype || 'Visionary',
-        socialBio: strategy.socialBio || 'The future of brand identity.',
-        mission: strategy.mission || 'To lead with innovation.',
-        elevatorPitch: strategy.elevatorPitch || 'Synthesizing the next generation of brand presence.',
-        values: strategy.values || ['Innovation', 'Quality', 'Vision']
+        target: strategy.target || 'Niche Market',
+        archetype: strategy.archetype || 'Creator',
+        socialBio: strategy.socialBio || 'Innovation driven.',
+        mission: strategy.mission || 'To define the future.',
+        elevatorPitch: strategy.elevatorPitch || 'Synthesizing greatness.',
+        values: strategy.values || ['Quality', 'Innovation'],
+        positioning: strategy.positioning || { pricePoint: 'Premium', vibe: 'Elite', competitors: [] },
+        personalityTraits: strategy.personalityTraits || [],
+        visualKeywords: strategy.visualKeywords || []
       },
       moodboard: moodboardResults.filter(Boolean),
       createdAt: Date.now(),
@@ -139,26 +131,15 @@ export const generateLogoProposals = async (config: LogoConfig, count: number = 
 
 export const animateLogo = async (logo: GeneratedLogo): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
   let operation = await ai.models.generateVideos({
     model: 'veo-3.1-fast-generate-preview',
-    prompt: `Cinematic logo reveal for "${logo.businessName}". The ${logo.material} brand mark floats in a void with volumetric light sweeps.`,
-    image: {
-      imageBytes: logo.imageUrl.split(',')[1],
-      mimeType: 'image/png'
-    },
-    config: {
-      numberOfVideos: 1,
-      resolution: '1080p',
-      aspectRatio: '16:9'
-    }
+    prompt: `Logo reveal for ${logo.businessName}. ${logo.material} finish.`,
+    image: { imageBytes: logo.imageUrl.split(',')[1], mimeType: 'image/png' },
+    config: { numberOfVideos: 1, resolution: '1080p', aspectRatio: '16:9' }
   });
-
   while (!operation.done) {
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise(resolve => setTimeout(resolve, 8000));
     operation = await ai.operations.getVideosOperation({ operation: operation });
   }
-
-  const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-  return `${downloadLink}&key=${process.env.API_KEY}`;
+  return `${operation.response?.generatedVideos?.[0]?.video?.uri}&key=${process.env.API_KEY}`;
 };
